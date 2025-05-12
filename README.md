@@ -11,4 +11,5 @@ The goal of this project is to create a smart, **agent-based chatbot** that can:
 * Guide customers through a seamless order process, ensuring accurate and structured order details.
 * Block irrelevant or harmful queries using a Guard Agent for safe and relevant interactions.
 https://github.com/nguemo12/GENAI_PROJECT
-![image](https://github.com/user-attachments/assets/e0ccdf10-9501-4331-bc68-6bf0aa478ae0)
+![image](https://github.com/user-attachments/assets/a39c2d71-638e-4967-843b-6378295640fa)
+
