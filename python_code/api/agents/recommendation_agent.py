@@ -7,6 +7,8 @@ from copy import deepcopy
 from dotenv import load_dotenv
 from together import Together
 load_dotenv()
+import re
+import json
 
 
 class RecommendationAgent():
@@ -15,7 +17,7 @@ class RecommendationAgent():
             api_key=os.getenv("TOGETHER_API_KEY"),
             
         )
-        self.model_name = os.getenv("MODEL_NAME")
+        self.model_name = "Qwen/Qwen3-235B-A22B-fp8-tput"
 
         with open(apriori_recommendation_path, 'r') as file:
             self.apriori_recommendations = json.load(file)
@@ -101,94 +103,174 @@ class RecommendationAgent():
         chatbot_output =get_chatbot_response(self.client,self.model_name,input_messages)
         output = self.postprocess_classfication(chatbot_output)
         return output
-
-    def get_response(self,messages):
-        messages = deepcopy(messages)
-
-        recommendation_classification = self.recommendation_classification(messages)
-        recommendation_type = recommendation_classification['recommendation_type']
-        recommendations = []
-        if recommendation_type == "apriori":
-            recommendations = self.get_apriori_recommendation(recommendation_classification['parameters'])
-        elif recommendation_type == "popular":
-            recommendations = self.get_popular_recommendation()
-        elif recommendation_type == "popular by category":
-            recommendations = self.get_popular_recommendation(recommendation_classification['parameters'])
         
-        if recommendations == []:
-            return {"role": "assistant", "content":"Sorry, I can't help with that. Can I help you with your order?"}
+
+    # def get_response(self,messages):
+    #     messages = deepcopy(messages)
+
+    #     recommendation_classification = self.recommendation_classification(messages)
+    #     recommendation_type = recommendation_classification['recommendation_type']
+    #     recommendations = []
+    #     if recommendation_type == "apriori":
+    #         recommendations = self.get_apriori_recommendation(recommendation_classification['parameters'])
+    #     elif recommendation_type == "popular":
+    #         recommendations = self.get_popular_recommendation()
+    #     elif recommendation_type == "popular by category":
+    #         recommendations = self.get_popular_recommendation(recommendation_classification['parameters'])
         
-        # Respond to User
-        recommendations_str = ", ".join(recommendations)
+    #     if recommendations == []:
+    #         return {"role": "assistant", "content":"Sorry, I can't help with that. Can I help you with your order?"}
         
-        system_prompt = f"""
-        You are a helpful AI assistant for a coffee shop application which serves drinks and pastries.
-        your task is to recommend items to the user based on their input message. And respond in a friendly but concise way. And put it an unordered list with a very small description.
+    #     # Respond to User
+    #     recommendations_str = ", ".join(recommendations)
+        
+    #     system_prompt = f"""
+    #     You are a helpful AI assistant for a coffee shop application which serves drinks and pastries.
+    #     your task is to recommend items to the user based on their input message. And respond in a friendly but concise way. And put it an unordered list with a very small description.
 
-        I will provide what items you should recommend to the user based on their order in the user message. 
-        """
+    #     I will provide what items you should recommend to the user based on their order in the user message. 
+    #     """
 
-        prompt = f"""
-        {messages[-1]['content']}
+    #     prompt = f"""
+    #     {messages[-1]['content']}
 
-        Please recommend me those items exactly: {recommendations_str}
-        """
+    #     Please recommend me those items exactly: {recommendations_str}
+    #     """
 
-        messages[-1]['content'] = prompt
-        input_messages = [{"role": "system", "content": system_prompt}] + messages[-3:]
+    #     messages[-1]['content'] = prompt
+    #     input_messages = [{"role": "system", "content": system_prompt}] + messages[-3:]
 
-        chatbot_output =get_chatbot_response(self.client,self.model_name,input_messages)
-        output = self.postprocess(chatbot_output)
+    #     chatbot_output =get_chatbot_response(self.client,self.model_name,input_messages)
+    #     output = self.postprocess(chatbot_output)
 
-        return output
+    #     return output
 
 
 
-    def postprocess_classfication(self,output):
+    def postprocess_classfication(self, output):
+        output = re.sub(r"<think>.*?</think>", "", output, flags=re.DOTALL).strip()
+
         output = json.loads(output)
-
         dict_output = {
             "recommendation_type": output['recommendation_type'],
             "parameters": output['parameters'],
         }
         return dict_output
 
+
+    def get_response(self, messages):
+            messages = deepcopy(messages)
+
+            recommendation_classification = self.recommendation_classification(messages)
+            recommendation_type = recommendation_classification['recommendation_type']
+            recommendations = []
+            
+            if recommendation_type == "apriori":
+                recommendations = self.get_apriori_recommendation(recommendation_classification['parameters'])
+            elif recommendation_type == "popular":
+                recommendations = self.get_popular_recommendation()
+            elif recommendation_type == "popular by category":
+                recommendations = self.get_popular_recommendation(recommendation_classification['parameters'])
+
+            if recommendations == []:
+                return self.wrap_in_json({"role": "assistant", "content":"Sorry, I can't help with that. Can I help you with your order?"})
+            
+            # Respond to User
+            recommendations_str = ", ".join(recommendations)
+
+            # Update the system prompt for clearer instructions
+            system_prompt = f"""
+            You are a helpful AI assistant for a coffee shop application that serves drinks and pastries.
+            Your task is to recommend items to the user based on their input message. You will respond in a friendly but concise way, in an unordered list with very brief descriptions.
+
+            Please only respond with a recommendation list. Use the following format:
+
+            1. Coffee 1 - Description
+            2. Coffee 2 - Description
+            """
+
+            prompt = f"""
+            {messages[-1]['content']}
+
+            Please recommend me those items exactly: {recommendations_str}
+            """
+
+            messages[-1]['content'] = prompt
+            input_messages = [{"role": "system", "content": system_prompt}] + messages[-3:]
+
+            chatbot_output = get_chatbot_response(self.client, self.model_name, input_messages)
+            
+            # Extract and wrap JSON
+            output = self.wrap_in_json(self.extract_json_from_output(chatbot_output))
+
+            return output
+
+
+    def extract_json_from_output(self, output):
+            """
+            Extracts JSON from chatbot output using regex and returns it if valid.
+            """
+            # Regex to match valid JSON-like strings
+            json_pattern = r'^\s*\{.*\}\s*$'
+
+            if re.match(json_pattern, output, re.DOTALL):
+                try:
+                    # Try parsing JSON
+                    parsed_output = json.loads(output)
+                    return parsed_output
+                except json.JSONDecodeError:
+                    print("Error: Invalid JSON returned")
+                    return {"role": "assistant", "content": "Sorry, I couldn't process your request. Please try again."}
+            else:
+                print("Error: Output is not valid JSON-like format")
+                return {"role": "assistant", "content": "Sorry, I couldn't process your request. Please try again."}
+
+    def wrap_in_json(self, response):
+            """
+            Wraps any response inside a valid JSON structure before returning.
+            """
+            return {"response": response}
+
+
+
     def get_recommendations_from_order(self,messages,order):
-        products = []
-        for product in order:
-            products.append(product['item'])
+            products = []
+            for product in order:
+                products.append(product['item'])
 
-        recommendations = self.get_apriori_recommendation(products)
-        recommendations_str = ", ".join(recommendations)
+            recommendations = self.get_apriori_recommendation(products)
+            recommendations_str = ", ".join(recommendations)
 
-        system_prompt = f"""
-        You are a helpful AI assistant for a coffee shop application which serves drinks and pastries.
-        your task is to recommend items to the user based on their order.
+            system_prompt = f"""
+            You are a helpful AI assistant for a coffee shop application which serves drinks and pastries.
+            your task is to recommend items to the user based on their order.
 
-        I will provide what items you should recommend to the user based on their order in the user message. 
-        """
+            I will provide what items you should recommend to the user based on their order in the user message. 
+            """
 
-        prompt = f"""
-        {messages[-1]['content']}
+            prompt = f"""
+            {messages[-1]['content']}
 
-        Please recommend me those items exactly: {recommendations_str}
-        """
+            Please recommend me those items exactly: {recommendations_str}
+            """
 
-        messages[-1]['content'] = prompt
-        input_messages = [{"role": "system", "content": system_prompt}] + messages[-3:]
+            messages[-1]['content'] = prompt
+            input_messages = [{"role": "system", "content": system_prompt}] + messages[-3:]
 
-        chatbot_output =get_chatbot_response(self.client,self.model_name,input_messages)
-        output = self.postprocess(chatbot_output)
+            chatbot_output = get_chatbot_response(self.client, self.model_name, input_messages)
+            
+            # Extract and wrap JSON
+            output = self.wrap_in_json(self.extract_json_from_output(chatbot_output))
 
-        return output
-    
+            return output
+        
     def postprocess(self,output):
-        output = {
-            "role": "assistant",
-            "content": output,
-            "memory": {"agent":"recommendation_agent"
-                      }
-        }
-        return output
+            output = {
+                "role": "assistant",
+                "content": output,
+                "memory": {"agent":"recommendation_agent"
+                        }
+            }
+            return output
 
 

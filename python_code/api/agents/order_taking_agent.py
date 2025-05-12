@@ -6,6 +6,8 @@ from copy import deepcopy
 from dotenv import load_dotenv
 from together import Together
 load_dotenv()
+import re
+import json
 
 
 class OrderTakingAgent():
@@ -107,7 +109,10 @@ class OrderTakingAgent():
         return output
 
     def postprocess(self,output,messages,asked_recommendation_before):
+        output = re.sub(r"<think>.*?</think>", "", output, flags=re.DOTALL).strip()
         output = json.loads(output)
+
+
 
         if type(output["order"]) == str:
             output["order"] = json.loads(output["order"])

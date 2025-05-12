@@ -17,7 +17,7 @@ class DetailsAgent():
             api_key=os.getenv("TOGETHER_API_KEY"),
             
         )
-        self.model_name = "togethercomputer/m2-bert-80M-32k-retrieval"
+        self.model_name = os.getenv("MODEL_NAME")
         self.pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
         self.index_name = os.getenv("PINECONE_INDEX_NAME")
     

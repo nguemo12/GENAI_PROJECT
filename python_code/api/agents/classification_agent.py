@@ -7,8 +7,6 @@ from openai import OpenAI
 from together import Together
 load_dotenv()
 import re
-
-
 def extract_json_from_output(output):
         """
         Extract the first valid JSON object from the model output.
@@ -18,6 +16,7 @@ def extract_json_from_output(output):
         if match:
             return match.group(0)  # Return the first match
         raise ValueError("No JSON object found in the model output.")
+
 
 class ClassificationAgent():
     def __init__(self):
@@ -44,6 +43,7 @@ class ClassificationAgent():
             "message": leave the message empty.
             }
             """
+        
         input_messages = [{"role": "system", "content": system_prompt}] + messages[-3:]
 
         chatbot_output =get_chatbot_response(self.client,self.model_name,input_messages)
@@ -57,7 +57,7 @@ class ClassificationAgent():
         
         return output
 
-    def postprocess(self, output):
+    def postprocess(self,output):
         if not output:
             raise ValueError("Empty chatbot output. Cannot parse as JSON.")
 
@@ -71,14 +71,10 @@ class ClassificationAgent():
         dict_output = {
             "role": "assistant",
             "content": parsed['message'],
-            "memory": {
-                "agent": "guard_agent",
-                "guard_decision": parsed['decision']
-            }
+            "memory": {"agent":"classification_agent",
+                       "classification_decision": parsed['decision']
+                      }
         }
         return dict_output
-
-
-
 
     
