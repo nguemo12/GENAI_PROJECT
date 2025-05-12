@@ -4,7 +4,7 @@ def get_chatbot_response(client,model_name,messages,temperature=0):
         input_messages.append({"role": message["role"], "content": message["content"]})
 
     response = client.chat.completions.create(
-        model=model_name,
+        model="Qwen/Qwen3-235B-A22B-fp8-tput",
         messages=input_messages,
         temperature=temperature,
         top_p=0.8,
@@ -14,7 +14,7 @@ def get_chatbot_response(client,model_name,messages,temperature=0):
     return response
 
 def get_embedding(embedding_client,model_name,text_input):
-    output = embedding_client.embeddings.create(input = text_input,model=model_name)
+    output = embedding_client.embeddings.create(input = text_input,model="togethercomputer/m2-bert-80M-32k-retrieval")
     
     embedings = []
     for embedding_object in output.data:

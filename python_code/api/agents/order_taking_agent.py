@@ -4,14 +4,15 @@ from .utils import get_chatbot_response,double_check_json_output
 from openai import OpenAI
 from copy import deepcopy
 from dotenv import load_dotenv
+from together import Together
 load_dotenv()
 
 
 class OrderTakingAgent():
     def __init__(self, recommendation_agent):
-        self.client = OpenAI(
-            api_key=os.getenv("RUNPOD_TOKEN"),
-            base_url=os.getenv("RUNPOD_CHATBOT_URL"),
+        self.client = Together(
+            api_key=os.getenv("TOGETHER_API_KEY"),
+            
         )
         self.model_name = os.getenv("MODEL_NAME")
 

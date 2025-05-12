@@ -4,15 +4,29 @@ import json
 from copy import deepcopy
 from .utils import get_chatbot_response
 from openai import OpenAI
+from together import Together
 load_dotenv()
+import re
+
+
+def extract_json_from_output(output):
+        """
+        Extract the first valid JSON object from the model output.
+        Strips any leading non-JSON text.
+        """
+        match = re.search(r'\{.*\}', output, re.DOTALL)  # Search for a JSON object
+        if match:
+            return match.group(0)  # Return the first match
+        raise ValueError("No JSON object found in the model output.")
 
 class GuardAgent():
     def __init__(self):
-        self.client = OpenAI(
-            api_key=os.getenv("RUNPOD_TOKEN"),
-            base_url=os.getenv("RUNPOD_CHATBOT_URL"),
+        self.client = Together(
+            api_key=os.getenv("TOGETHER_API_KEY"),
+            
         )
         self.model_name = os.getenv("MODEL_NAME")
+    
     
     def get_response(self,messages):
         messages = deepcopy(messages)
@@ -41,21 +55,37 @@ class GuardAgent():
         input_messages = [{"role": "system", "content": system_prompt}] + messages[-3:]
 
         chatbot_output =get_chatbot_response(self.client,self.model_name,input_messages)
-        output = self.postprocess(chatbot_output)
+        
+        print("Raw chatbot output:", repr(chatbot_output))  # Debug print
+
+            # Extract clean JSON from the response
+        clean_output = extract_json_from_output(chatbot_output)
+
+        output = self.postprocess(clean_output)
         
         return output
 
-    def postprocess(self,output):
-        output = json.loads(output)
+    def postprocess(self, output):
+        if not output:
+            raise ValueError("Empty chatbot output. Cannot parse as JSON.")
+
+        try:
+            parsed = json.loads(output)
+        except json.JSONDecodeError as e:
+            print("Invalid JSON output received:")
+            print("Raw output:", repr(output))
+            raise e
 
         dict_output = {
             "role": "assistant",
-            "content": output['message'],
-            "memory": {"agent":"guard_agent",
-                       "guard_decision": output['decision']
-                      }
+            "content": parsed['message'],
+            "memory": {
+                "agent": "guard_agent",
+                "guard_decision": parsed['decision']
+            }
         }
         return dict_output
+
 
 
 

@@ -4,19 +4,20 @@ from .utils import get_chatbot_response,get_embedding
 from openai import OpenAI
 from copy import deepcopy
 from pinecone import Pinecone
+from together import Together
 load_dotenv()
 
 class DetailsAgent():
     def __init__(self):
-        self.client = OpenAI(
-            api_key=os.getenv("RUNPOD_TOKEN"),
-            base_url=os.getenv("RUNPOD_CHATBOT_URL"),
+        self.client = Together(
+            api_key=os.getenv("TOGETHER_API_KEY"),
+            
         )
-        self.embedding_client = OpenAI(
-            api_key=os.getenv("RUNPOD_TOKEN"), 
-            base_url=os.getenv("RUNPOD_EMBEDDING_URL")
+        self.embedding_client = Together(
+            api_key=os.getenv("TOGETHER_API_KEY"),
+            
         )
-        self.model_name = os.getenv("MODEL_NAME")
+        self.model_name = "togethercomputer/m2-bert-80M-32k-retrieval"
         self.pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
         self.index_name = os.getenv("PINECONE_INDEX_NAME")
     
