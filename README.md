@@ -12,4 +12,11 @@ The goal of this project is to create a smart, **agent-based chatbot** that can:
 * Block irrelevant or harmful queries using a Guard Agent for safe and relevant interactions.
 https://github.com/nguemo12/GENAI_PROJECT
 ![image](https://github.com/user-attachments/assets/a39c2d71-638e-4967-843b-6378295640fa)
+![image](https://github.com/user-attachments/assets/db4a3475-c233-443f-b806-d00564add518)
+
+Run the main.py file
+Python python_code\api\main.py
+
+click on the gradio link
+
 
