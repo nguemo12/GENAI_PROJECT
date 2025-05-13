@@ -23,6 +23,8 @@ https://github.com/nguemo12/GENAI_PROJECT
 
 * Vector database deployed PINCONE API KEY: https://app.pinecone.io/organizations/-OPqLt-Xw1MVYQlitwhD/projects/a8b4bc01-dfcc-4e1a-86d9-5789ccdf284e/indexes?sessionType=signup
   ![image](https://github.com/user-attachments/assets/2c8de816-0ff6-4076-931c-10b380c46711)
+  
+![image](https://github.com/user-attachments/assets/d5823743-a14e-4c7d-bdd4-7c8933284b29)
 
 
 Download the requirements packages in requirements.txt
