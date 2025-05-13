@@ -199,9 +199,9 @@ class RecommendationAgent():
             input_messages = [{"role": "system", "content": system_prompt}] + messages[-3:]
 
             chatbot_output = get_chatbot_response(self.client, self.model_name, input_messages)
+            output = self.postprocess(chatbot_output)
             
-            # Extract and wrap JSON
-            output = self.wrap_in_json(self.extract_json_from_output(chatbot_output))
+            
 
             return output
 
@@ -260,11 +260,13 @@ class RecommendationAgent():
             chatbot_output = get_chatbot_response(self.client, self.model_name, input_messages)
             
             # Extract and wrap JSON
-            output = self.wrap_in_json(self.extract_json_from_output(chatbot_output))
+            output = self.postprocess(chatbot_output)
+            
 
             return output
         
     def postprocess(self,output):
+            output = re.sub(r"<think>.*?</think>", "", output, flags=re.DOTALL).strip()
             output = {
                 "role": "assistant",
                 "content": output,
