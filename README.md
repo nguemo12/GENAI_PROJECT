@@ -14,6 +14,17 @@ https://github.com/nguemo12/GENAI_PROJECT
 ![image](https://github.com/user-attachments/assets/a39c2d71-638e-4967-843b-6378295640fa)
 ![image](https://github.com/user-attachments/assets/db4a3475-c233-443f-b806-d00564add518)
 
+#Important links to get the api keys
+* Together API KEY for the LLM: https://api.together.ai/
+  ![image](https://github.com/user-attachments/assets/cc242b06-9132-4ce0-af77-f7ac6a3e241c)
+
+* RUNPOD API for deploying severless llm: (https://www.runpod.io/console/home)
+  ![image](https://github.com/user-attachments/assets/0da74493-7e6e-4f58-8065-989477e74b74)
+
+* Vector database deployed PINCONE API KEY: https://app.pinecone.io/organizations/-OPqLt-Xw1MVYQlitwhD/projects/a8b4bc01-dfcc-4e1a-86d9-5789ccdf284e/indexes?sessionType=signup
+  ![image](https://github.com/user-attachments/assets/2c8de816-0ff6-4076-931c-10b380c46711)
+
+
 Download the requirements packages in requirements.txt
 ```bash
 pip install -r python_code\requirements.txt
