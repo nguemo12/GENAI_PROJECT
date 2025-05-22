@@ -4,3 +4,7 @@ openai==1.50.2
 runpod==1.7.1
 pinecone==5.3.1
 gradio
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+python-multipart==0.0.6
