@@ -154,7 +154,7 @@ const ChatApp = () => {
                   <p className="message-content">{message.content}</p>
                   <p className="message-timestamp">
                     {new Date(message.timestamp).toLocaleTimeString()}
-                  </p>
+                  </p> 
                 </div>
               </div>
             ))
