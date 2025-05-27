@@ -37,7 +37,8 @@ Run the main.py file
 ```bash
 Python python_code\api\main.py
 ```
-
-click on the gradio link
-
-The React native app deployment is coming very soon, Stay Tuned guys
+Run the web app in coffee shop web app
+```bash
+npm start
+```
+To execute the react app
